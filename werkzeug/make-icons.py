@@ -1,5 +1,5 @@
 # Erzeugt die Handy-Symbole für Kalender und Shop: Clublogo abgedunkelt im Hintergrund, davor das Symbol.
-# Aufruf: python make-icons.py <logo.jpg>   (schreibt kalender/ und shop/ neben dieses Skript)
+# Aufruf: python make-icons.py <logo.jpg>   (schreibt kalender/ und bestellungen/ ins Repo)
 import os
 import sys
 from PIL import Image, ImageDraw, ImageEnhance, ImageFilter
@@ -95,7 +95,7 @@ def build(logo_path, glyph, folder):
 if __name__ == '__main__':
     src = sys.argv[1]
     a = build(src, calendar_glyph(), 'kalender')
-    b = build(src, shop_glyph(), 'shop')
+    b = build(src, shop_glyph(), 'bestellungen')
     # Vorschau: beide nebeneinander mit runden Ecken wie am iPhone
     prev = Image.new('RGB', (2 * 220 + 60, 260), (235, 235, 235))
     for i, im in enumerate((a, b)):
