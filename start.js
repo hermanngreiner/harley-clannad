@@ -1,59 +1,160 @@
-// Startseite für den Knopf auf dem Startbildschirm.
-// - Vom Knopf gestartet (eigenes App-Fenster): sofort zur Web-App weiter.
-// - Im Browser geöffnet (z. B. Link aus WhatsApp): Anleitung zeigen, wie man den Knopf anlegt, plus "öffnen".
-// - Direktlink auf einen Termin (?t=...) geht immer sofort weiter.
-// - Seiten mit OPENS_IN_BROWSER (Knopf öffnet den Browser statt eines App-Fensters): Anleitung nur beim ersten
-//   Aufruf, danach sofort weiter. ?anleitung zeigt sie wieder.
+// Startseite für Kalender, Shop und Bestellungen.
+// Einstellungen je Seite (vor diesem Skript gesetzt):
+//   TARGET         Adresse der Google-Web-App (ggf. mit ?seite=...)
+//   NAME           Kurzname der Seite (Speicherschlüssel)
+//   TARGET_LABEL   Text "den Kalender" / "den Shop" / "die Bestellübersicht"
+//   NEEDS_NAME     true: Namen einmal abfragen, dauerhaft merken und als &name= mitgeben (gilt für alle Seiten gemeinsam)
+//   NAMES_PARAM    Parameter, mit dem die Namensliste abgerufen wird ('k' Kalender, 'runde' Shop)
+//   ALWAYS_REDIRECT true: nie die Anleitung zeigen (Shop: Mitglieder kommen nur über den Rundenlink)
+//   OPENS_IN_BROWSER true: Knopf öffnet den Browser; Anleitung nur beim ersten Aufruf
+// Parameter dürfen hinter ? oder # stehen; # ist besser, der Teil geht nicht an den Server von GitHub.
+// Steuerparameter: anleitung (Anleitung zeigen), direkt (sofort weiter), namewechsel (Namen neu wählen).
 (function () {
+  var cfg = {
+    needsName: typeof NEEDS_NAME !== 'undefined' && NEEDS_NAME === true,
+    namesParam: typeof NAMES_PARAM !== 'undefined' ? NAMES_PARAM : '',
+    always: typeof ALWAYS_REDIRECT !== 'undefined' && ALWAYS_REDIRECT === true,
+    inBrowser: typeof OPENS_IN_BROWSER !== 'undefined' && OPENS_IN_BROWSER === true,
+    label: typeof TARGET_LABEL !== 'undefined' ? TARGET_LABEL : 'den Kalender'
+  };
   var KEY = 'start.query.' + NAME;
   var SEEN = 'start.seen.' + NAME;
-  var inBrowserMode = typeof OPENS_IN_BROWSER !== 'undefined' && OPENS_IN_BROWSER === true;
-  var label = typeof TARGET_LABEL !== 'undefined' ? TARGET_LABEL : 'den Kalender';
+  var NAME_KEY = 'club.name';
+  var CONTROL = ['anleitung', 'direkt', 'namewechsel', 'name', 'start'];
 
-  var params = new URLSearchParams(location.search);
-  var showHowto = params.has('anleitung');
-  params.delete('anleitung');
-  var query = params.toString();
-  try {
-    if (query) localStorage.setItem(KEY, query);
-    else query = localStorage.getItem(KEY) || '';
-  } catch (e) { /* ohne Speicher: dann eben ohne gemerkten Code */ }
-  params = new URLSearchParams(query);
-  var url = TARGET + (query ? (TARGET.indexOf('?') >= 0 ? '&' : '?') + query : '');
-  document.getElementById('go').href = url;
+  function store(k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } return v; }
+  function parse(s) { var p = new URLSearchParams(s); var o = {}; p.forEach(function (v, k) { o[k] = v; }); return o; }
+
+  // Parameter aus ? und # zusammenführen (# gewinnt)
+  var all = parse(location.search);
+  var fromHash = parse(location.hash.replace(/^#/, ''));
+  Object.keys(fromHash).forEach(function (k) { all[k] = fromHash[k]; });
+  var showHowto = 'anleitung' in all;
+  var direct = 'direkt' in all;
+  var rename = 'namewechsel' in all;
+
+  // Weitergegebene Parameter (Code, Runde, Schlüssel, Termin); gemerkt wird alles außer dem Termin
+  var forward = {};
+  Object.keys(all).forEach(function (k) { if (CONTROL.indexOf(k) < 0) forward[k] = all[k]; });
+  var keep = {};
+  Object.keys(forward).forEach(function (k) { if (k !== 't') keep[k] = forward[k]; });
+  if (Object.keys(keep).length) store(KEY, JSON.stringify(keep));
+  else {
+    try { var saved = JSON.parse(store(KEY) || '{}'); Object.keys(saved).forEach(function (k) { if (!(k in forward)) forward[k] = saved[k]; }); } catch (e) {}
+  }
+
+  function validName(n) { return /^[\p{L}\p{N} .'\-]{2,40}$/u.test(n); }
+  function targetUrl() {
+    var p = new URLSearchParams();
+    Object.keys(forward).forEach(function (k) { p.set(k, forward[k]); });
+    if (cfg.needsName) {
+      var n = store(NAME_KEY);
+      if (n) p.set('name', n);
+      p.set('start', '1');
+    }
+    var q = p.toString();
+    return TARGET + (q ? (TARGET.indexOf('?') >= 0 ? '&' : '?') + q : '');
+  }
+  function launch() {
+    if (cfg.needsName && (rename || !store(NAME_KEY))) { showPicker(); return; }
+    location.replace(targetUrl());
+  }
+
+  var go = document.getElementById('go');
+  go.href = targetUrl();
+  go.addEventListener('click', function (e) { e.preventDefault(); launch(); });
 
   var standalone = window.navigator.standalone === true ||
     (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-  var seen = false;
-  try { seen = localStorage.getItem(SEEN) === '1'; } catch (e) {}
-  if (!showHowto && (standalone || params.has('t') || params.has('direkt') || (inBrowserMode && seen))) {
-    location.replace(url);
+  var seen = store(SEEN) === '1';
+  if (rename || (!showHowto && (standalone || 't' in forward || direct || cfg.always || (cfg.inBrowser && seen)))) {
+    launch();
     return;
   }
-  if (inBrowserMode) { try { localStorage.setItem(SEEN, '1'); } catch (e) {} }
+  if (cfg.inBrowser) store(SEEN, '1');
+  showHowtoBox();
 
-  var ua = navigator.userAgent || '';
-  var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
-  var android = /Android/.test(ua);
-  var inApp = /WhatsApp|FBAN|FBAV|Instagram|Line\//.test(ua);
-  var html = '<h2>Als Knopf aufs Handy legen</h2>';
-  if (ios) {
-    html += (inApp ? '<p class="warn">Bitte zuerst in <b>Safari</b> öffnen (unten rechts das Kompass-Symbol oder „In Safari öffnen“).</p>' : '') +
-      '<ol><li>Unten auf das <b>Teilen-Symbol</b> tippen <span class="sym">(Quadrat mit Pfeil nach oben)</span>.</li>' +
-      '<li>Nach unten scrollen: <b>„Zum Home-Bildschirm“</b>.</li>' +
-      (inBrowserMode ? '<li>Steht dort der Schalter <b>„Als Web-App öffnen“</b>: <b>ausschalten</b>. Dann öffnet der Knopf ' +
-        'Safari, wo du bei Google angemeldet bist.</li>' : '') +
-      '<li>Oben rechts <b>„Hinzufügen“</b>.</li></ol>';
-  } else if (android) {
-    html += (inApp ? '<p class="warn">Bitte zuerst in <b>Chrome</b> öffnen (Menü ⋮ → „In Chrome öffnen“).</p>' : '') +
-      '<ol><li>Oben rechts auf <b>⋮</b> tippen.</li>' +
-      '<li><b>„Zum Startbildschirm hinzufügen“</b> (oder „App installieren“).</li>' +
-      '<li><b>„Hinzufügen“</b> bzw. <b>„Installieren“</b>.</li></ol>';
-  } else {
-    html += '<p>Am Handy: <b>iPhone</b> in Safari Teilen-Symbol → „Zum Home-Bildschirm“, ' +
-      '<b>Android</b> in Chrome ⋮ → „Zum Startbildschirm hinzufügen“. Am PC einfach als Lesezeichen speichern.</p>';
+  // ---- Namensauswahl (einmal, danach gemerkt) -------------------------------------------------
+  function showPicker() {
+    var box = document.getElementById('howto');
+    var current = store(NAME_KEY);
+    box.innerHTML = '<h2>Wer bist du?</h2>' +
+      '<p class="small">Das Handy merkt sich deinen Namen. Dann musst du ihn nicht jedes Mal auswählen.</p>' +
+      '<select id="pickSel" class="field"><option value="">Namen werden geladen …</option></select>' +
+      '<input id="pickOther" class="field hidden" maxlength="40" placeholder="Vor- und Nachname">' +
+      '<p id="pickErr" class="warn hidden"></p>' +
+      '<a id="pickOk" class="button" href="#">Weiter</a>' +
+      '<p class="small"><a id="pickSkip" href="#">Ohne Namen weiter</a></p>';
+    box.classList.remove('hidden');
+    go.classList.add('hidden');
+    var sel = document.getElementById('pickSel');
+    var other = document.getElementById('pickOther');
+    function fill(names) {
+      var known = names.some(function (n) { return n.toLowerCase() === current.toLowerCase(); });
+      sel.innerHTML = '<option value="">– bitte wählen –</option>' + names.map(function (n) {
+        return '<option' + (known && n.toLowerCase() === current.toLowerCase() ? ' selected' : '') + '>' + esc(n) + '</option>';
+      }).join('') + '<option value="__other__"' + (current && !known ? ' selected' : '') + '>Anderer Name (Gast) …</option>';
+      if (current && !known) other.value = current;
+      toggleOther();
+    }
+    function toggleOther() { other.classList.toggle('hidden', sel.value !== '__other__'); }
+    sel.addEventListener('change', toggleOther);
+    var codeValue = cfg.namesParam ? forward[cfg.namesParam] : '';
+    if (codeValue) {
+      var base = TARGET.replace(/\?.*$/, '');
+      fetch(base + '?seite=namen&' + cfg.namesParam + '=' + encodeURIComponent(codeValue), { credentials: 'omit' })
+        .then(function (r) { return r.json(); })
+        .then(function (d) { fill(d && d.ok && d.names ? d.names : []); })
+        .catch(function () { fill([]); });
+    } else {
+      fill([]);
+    }
+    document.getElementById('pickOk').addEventListener('click', function (e) {
+      e.preventDefault();
+      var n = (sel.value === '__other__' ? other.value : sel.value).trim().replace(/\s+/g, ' ');
+      if (!validName(n)) {
+        var err = document.getElementById('pickErr');
+        err.textContent = 'Bitte deinen Namen wählen oder eingeben (2 bis 40 Buchstaben).';
+        err.classList.remove('hidden');
+        return;
+      }
+      store(NAME_KEY, n);
+      rename = false;
+      location.replace(targetUrl());
+    });
+    document.getElementById('pickSkip').addEventListener('click', function (e) {
+      e.preventDefault();
+      cfg.needsName = false;
+      location.replace(targetUrl());
+    });
   }
-  html += '<p class="small">Danach öffnet der Knopf mit dem Clublogo direkt ' + label + '.' +
-    (inBrowserMode ? ' Diese Seite erscheint nur beim ersten Mal.' : '') + '</p>';
-  document.getElementById('howto').innerHTML = html;
+
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+  // ---- Anleitung für den Knopf ------------------------------------------------------------------
+  function showHowtoBox() {
+    var ua = navigator.userAgent || '';
+    var ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    var android = /Android/.test(ua);
+    var inApp = /WhatsApp|FBAN|FBAV|Instagram|Line\//.test(ua);
+    var html = '<h2>Als Knopf aufs Handy legen</h2>';
+    if (ios) {
+      html += (inApp ? '<p class="warn">Bitte zuerst in <b>Safari</b> öffnen (unten rechts das Kompass-Symbol oder „In Safari öffnen“).</p>' : '') +
+        '<ol><li>Unten auf das <b>Teilen-Symbol</b> tippen <span class="sym">(Quadrat mit Pfeil nach oben)</span>.</li>' +
+        '<li>Nach unten scrollen: <b>„Zum Home-Bildschirm“</b>.</li>' +
+        (cfg.inBrowser ? '<li>Steht dort der Schalter <b>„Als Web-App öffnen“</b>: <b>ausschalten</b>.</li>' : '') +
+        '<li>Oben rechts <b>„Hinzufügen“</b>.</li></ol>';
+    } else if (android) {
+      html += (inApp ? '<p class="warn">Bitte zuerst in <b>Chrome</b> öffnen (Menü ⋮ → „In Chrome öffnen“).</p>' : '') +
+        '<ol><li>Oben rechts auf <b>⋮</b> tippen.</li>' +
+        '<li><b>„Zum Startbildschirm hinzufügen“</b> (oder „App installieren“).</li>' +
+        '<li><b>„Hinzufügen“</b> bzw. <b>„Installieren“</b>.</li></ol>';
+    } else {
+      html += '<p>Am Handy: <b>iPhone</b> in Safari Teilen-Symbol → „Zum Home-Bildschirm“, ' +
+        '<b>Android</b> in Chrome ⋮ → „Zum Startbildschirm hinzufügen“. Am PC einfach als Lesezeichen speichern.</p>';
+    }
+    html += '<p class="small">Danach öffnet der Knopf mit dem Clublogo direkt ' + cfg.label + '.' +
+      (cfg.inBrowser ? ' Diese Seite erscheint nur beim ersten Mal.' : '') + '</p>';
+    document.getElementById('howto').innerHTML = html;
+  }
 })();

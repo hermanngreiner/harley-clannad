@@ -23,9 +23,13 @@
   <section id="howto" class="howto"></section>
 </main>
 <script>
-// Ziel: die Google-Web-App. Der Clubcode kommt aus dem eigenen Link (?k=...) und wird durchgereicht.
+// Ziel: die Google-Web-App. Der Clubcode kommt aus dem eigenen Link (#k=... oder ?k=...) und wird durchgereicht.
 var TARGET = 'https://script.google.com/macros/s/AKfycbwQZ75W2sO7QCZYtk1cp8pJWWPTO_4UkJ7LnIoLuSSA4C3dCQs0L9wV6Q6Sk7N5IKl4Jg/exec';
 var NAME = 'Clubkalender';
+var TARGET_LABEL = 'den Kalender';
+// Namen einmal abfragen und dauerhaft merken (der Speicher in der Google-Seite wird am iPhone geleert)
+var NEEDS_NAME = true;
+var NAMES_PARAM = 'k';
 </script>
 <script src="../start.js"></script>
 </body>
