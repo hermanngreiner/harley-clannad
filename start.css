@@ -1,0 +1,17 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; background: #111; color: #f5f5f5; font: 16px Arial, sans-serif; }
+main { width: min(480px, 100%); margin: auto; padding: 36px 16px 40px; text-align: center; }
+.logo { border-radius: 26px; box-shadow: 0 6px 20px rgba(0, 0, 0, .7); }
+h1 { color: #f36b21; margin: 16px 0 2px; font-size: 28px; }
+.club { color: #bbb; margin: 0 0 22px; font-size: 14px; }
+.button { display: block; background: #f36b21; color: #111; font-weight: bold; text-decoration: none; padding: 15px; border-radius: 10px; font-size: 18px; }
+.button:active { filter: brightness(.85); }
+.howto { text-align: left; background: #1d1d1d; border: 1px solid #f36b21; border-radius: 12px; padding: 4px 16px 10px; margin-top: 22px; line-height: 1.45; }
+.howto h2 { color: #f36b21; font-size: 18px; margin: 12px 0 6px; }
+.howto ol { padding-left: 20px; margin: 6px 0; }
+.howto li { margin: 6px 0; }
+.sym { color: #aaa; font-size: 14px; }
+.warn { background: #3b1717; border: 1px solid #c0392b; border-radius: 8px; padding: 8px 10px; }
+.small { color: #aaa; font-size: 14px; }
+.links a { display: flex; align-items: center; gap: 14px; background: #1d1d1d; border: 1px solid #393939; border-radius: 12px; padding: 12px; margin: 12px 0; color: #fff; text-decoration: none; font-size: 18px; font-weight: bold; text-align: left; }
+.links img { border-radius: 14px; }
