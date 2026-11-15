@@ -89,10 +89,12 @@
     go.classList.add('hidden');
     var sel = document.getElementById('pickSel');
     var other = document.getElementById('pickOther');
-    function fill(names) {
+    // labels (optional, Kalender): Anzeige "Spitzname (Name)"; gespeichert wird immer der Name
+    function fill(names, labels) {
       var known = names.some(function (n) { return n.toLowerCase() === current.toLowerCase(); });
-      sel.innerHTML = '<option value="">– bitte wählen –</option>' + names.map(function (n) {
-        return '<option' + (known && n.toLowerCase() === current.toLowerCase() ? ' selected' : '') + '>' + esc(n) + '</option>';
+      sel.innerHTML = '<option value="">– bitte wählen –</option>' + names.map(function (n, i) {
+        return '<option value="' + esc(n) + '"' + (known && n.toLowerCase() === current.toLowerCase() ? ' selected' : '') + '>' +
+          esc((labels && labels[i]) || n) + '</option>';
       }).join('') + '<option value="__other__"' + (current && !known ? ' selected' : '') + '>Anderer Name (Gast) …</option>';
       if (current && !known) other.value = current;
       toggleOther();
@@ -104,7 +106,7 @@
       var base = TARGET.replace(/\?.*$/, '');
       fetch(base + '?seite=namen&' + cfg.namesParam + '=' + encodeURIComponent(codeValue), { credentials: 'omit' })
         .then(function (r) { return r.json(); })
-        .then(function (d) { fill(d && d.ok && d.names ? d.names : []); })
+        .then(function (d) { fill(d && d.ok && d.names ? d.names : [], d && d.labels); })
         .catch(function () { fill([]); });
     } else {
       fill([]);
