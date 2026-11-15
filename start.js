@@ -33,15 +33,15 @@
   var direct = 'direkt' in all;
   var rename = 'namewechsel' in all;
 
-  // Weitergegebene Parameter (Code, Runde, Schlüssel, Termin); gemerkt wird alles außer dem Termin
+  // Weitergegebene Parameter (Code, Runde, Schlüssel, Termin); gemerkt wird alles außer dem Termin.
+  // Gemerkte Werte ergänzen, was im Link fehlt: "Name ändern" bringt nur den Clubcode mit, der Verwalter-Schlüssel
+  // soll dabei nicht verloren gehen. Neue Werte im Link ersetzen gemerkte.
   var forward = {};
   Object.keys(all).forEach(function (k) { if (CONTROL.indexOf(k) < 0) forward[k] = all[k]; });
+  try { var saved = JSON.parse(store(KEY) || '{}'); Object.keys(saved).forEach(function (k) { if (!(k in forward)) forward[k] = saved[k]; }); } catch (e) {}
   var keep = {};
   Object.keys(forward).forEach(function (k) { if (k !== 't') keep[k] = forward[k]; });
   if (Object.keys(keep).length) store(KEY, JSON.stringify(keep));
-  else {
-    try { var saved = JSON.parse(store(KEY) || '{}'); Object.keys(saved).forEach(function (k) { if (!(k in forward)) forward[k] = saved[k]; }); } catch (e) {}
-  }
 
   function validName(n) { return /^[\p{L}\p{N} .'\-]{2,40}$/u.test(n); }
   function targetUrl() {
