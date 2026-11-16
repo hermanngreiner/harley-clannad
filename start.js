@@ -7,20 +7,26 @@
 //   NAMES_PARAM    Parameter, mit dem die Namensliste abgerufen wird ('k' Kalender, 'runde' Shop)
 //   ALWAYS_REDIRECT true: nie die Anleitung zeigen (Shop: Mitglieder kommen nur über den Rundenlink)
 //   OPENS_IN_BROWSER true: Knopf öffnet den Browser; Anleitung nur beim ersten Aufruf
+//   EMBED          true: Web-App im Rahmen auf dieser Seite zeigen statt weiterzuleiten (ohne den Google-Hinweis oben)
 // Parameter dürfen hinter ? oder # stehen; # ist besser, der Teil geht nicht an den Server von GitHub.
-// Steuerparameter: anleitung (Anleitung zeigen), direkt (sofort weiter), namewechsel (Namen neu wählen).
+// Steuerparameter: anleitung (Anleitung zeigen), direkt (sofort weiter), namewechsel (Namen neu wählen),
+// neu (nur damit sich die Adresse ändert: eingebettet lädt die Seite bei geändertem # neu).
 (function () {
   var cfg = {
     needsName: typeof NEEDS_NAME !== 'undefined' && NEEDS_NAME === true,
     namesParam: typeof NAMES_PARAM !== 'undefined' ? NAMES_PARAM : '',
     always: typeof ALWAYS_REDIRECT !== 'undefined' && ALWAYS_REDIRECT === true,
     inBrowser: typeof OPENS_IN_BROWSER !== 'undefined' && OPENS_IN_BROWSER === true,
+    embed: typeof EMBED !== 'undefined' && EMBED === true,
     label: typeof TARGET_LABEL !== 'undefined' ? TARGET_LABEL : 'den Kalender'
   };
   var KEY = 'start.query.' + NAME;
   var SEEN = 'start.seen.' + NAME;
   var NAME_KEY = 'club.name';
-  var CONTROL = ['anleitung', 'direkt', 'namewechsel', 'name', 'start'];
+  var CONTROL = ['anleitung', 'direkt', 'namewechsel', 'name', 'start', 'neu'];
+
+  // Eingebettet: "Seite neu laden" und "Name ändern" im Kalender ändern nur den Teil hinter # dieser Seite
+  window.addEventListener('hashchange', function () { location.reload(); });
 
   function store(k, v) { try { if (v === undefined) return localStorage.getItem(k) || ''; localStorage.setItem(k, v); } catch (e) { return ''; } return v; }
   function parse(s) { var p = new URLSearchParams(s); var o = {}; p.forEach(function (v, k) { o[k] = v; }); return o; }
@@ -57,7 +63,13 @@
   }
   function launch() {
     if (cfg.needsName && (rename || !store(NAME_KEY))) { showPicker(); return; }
-    location.replace(targetUrl());
+    showTarget(targetUrl());
+  }
+  // Weiterleiten oder (EMBED) die Web-App bildschirmfüllend im Rahmen zeigen
+  function showTarget(url) {
+    if (!cfg.embed) { location.replace(url); return; }
+    document.body.className = 'embedded';
+    document.body.innerHTML = '<iframe id="app" src="' + esc(url) + '" title="' + esc(NAME) + '" allow="clipboard-write"></iframe>';
   }
 
   var go = document.getElementById('go');
@@ -122,12 +134,12 @@
       }
       store(NAME_KEY, n);
       rename = false;
-      location.replace(targetUrl());
+      showTarget(targetUrl());
     });
     document.getElementById('pickSkip').addEventListener('click', function (e) {
       e.preventDefault();
       cfg.needsName = false;
-      location.replace(targetUrl());
+      showTarget(targetUrl());
     });
   }
 
