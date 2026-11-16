@@ -66,10 +66,28 @@
     showTarget(targetUrl());
   }
   // Weiterleiten oder (EMBED) die Web-App bildschirmfüllend im Rahmen zeigen
+  // Eingebettet: bis der Kalender "bereit" meldet (oder spätestens nach 20 s), bleibt das Logo mit "wird geladen" sichtbar
   function showTarget(url) {
     if (!cfg.embed) { location.replace(url); return; }
     document.body.className = 'embedded';
-    document.body.innerHTML = '<iframe id="app" src="' + esc(url) + '" title="' + esc(NAME) + '" allow="clipboard-write"></iframe>';
+    document.getElementById('howto').classList.add('hidden');
+    go.classList.add('hidden');
+    var wait = document.createElement('p');
+    wait.className = 'loading';
+    wait.textContent = 'Kalender wird geladen …';
+    document.querySelector('main').appendChild(wait);
+    var frame = document.createElement('iframe');
+    frame.id = 'app';
+    frame.className = 'waiting';
+    frame.title = NAME;
+    frame.setAttribute('allow', 'clipboard-write');
+    frame.src = url;
+    document.body.appendChild(frame);
+    var reveal = function () { frame.className = ''; };
+    window.addEventListener('message', function (e) {
+      if (/\.googleusercontent\.com$/.test(e.origin || '') && e.data && e.data.clubkalender === 'bereit') reveal();
+    });
+    setTimeout(reveal, 20000);
   }
 
   var go = document.getElementById('go');

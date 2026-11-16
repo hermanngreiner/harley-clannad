@@ -19,5 +19,8 @@ h1 { color: #f36b21; margin: 16px 0 2px; font-size: 28px; }
 /* EMBED: Web-App bildschirmfüllend im Rahmen */
 body.embedded { overflow: hidden; }
 #app { position: fixed; top: 0; left: 0; width: 100%; height: 100%; height: 100dvh; border: 0; background: #111; }
+#app.waiting { opacity: 0; pointer-events: none; }
+.loading { color: #bbb; font-size: 15px; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { opacity: .35; } }
 .field { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #555; background: #0c0c0c; color: #fff; font-size: 16px; margin: 8px 0 12px; }
 .howto .button { margin: 6px 0 10px; text-align: center; }
