@@ -77,6 +77,7 @@
     // "den Kalender" -> "Kalender wird geladen …", "die Bestellübersicht" -> "Bestellübersicht wird geladen …"
     wait.textContent = cfg.label.replace(/^(den|die|das) /, '') + ' wird geladen …';
     document.querySelector('main').appendChild(wait);
+    showVersion();
     var frame = document.createElement('iframe');
     frame.id = 'app';
     frame.className = 'waiting';
@@ -89,6 +90,19 @@
       if (/\.googleusercontent\.com$/.test(e.origin || '') && e.data && e.data.clubkalender === 'bereit') reveal();
     });
     setTimeout(reveal, 20000);
+  }
+  // Unter dem Ladetext die Version der Web-App: sofort die zuletzt gesehene, dann die aktuelle (?seite=version)
+  function showVersion() {
+    var VERSION_KEY = 'start.version.' + NAME;
+    var line = document.createElement('p');
+    line.className = 'small version';
+    var show = function (v) { line.textContent = v ? 'Version ' + v : ''; };
+    show(store(VERSION_KEY));
+    document.querySelector('main').appendChild(line);
+    fetch(TARGET.replace(/\?.*$/, '') + '?seite=version', { credentials: 'omit' })
+      .then(function (r) { return r.json(); })
+      .then(function (d) { if (d && d.version) { store(VERSION_KEY, String(d.version)); show(String(d.version)); } })
+      .catch(function () { /* ohne Antwort bleibt die gemerkte Version */ });
   }
 
   var go = document.getElementById('go');
