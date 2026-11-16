@@ -66,7 +66,7 @@
     showTarget(targetUrl());
   }
   // Weiterleiten oder (EMBED) die Web-App bildschirmfüllend im Rahmen zeigen
-  // Eingebettet: bis der Kalender "bereit" meldet (oder spätestens nach 20 s), bleibt das Logo mit "wird geladen" sichtbar
+  // Eingebettet: bis die Web-App "bereit" meldet (oder spätestens nach 20 s), bleibt das Logo mit "wird geladen" sichtbar
   function showTarget(url) {
     if (!cfg.embed) { location.replace(url); return; }
     document.body.className = 'embedded';
@@ -74,7 +74,8 @@
     go.classList.add('hidden');
     var wait = document.createElement('p');
     wait.className = 'loading';
-    wait.textContent = 'Kalender wird geladen …';
+    // "den Kalender" -> "Kalender wird geladen …", "die Bestellübersicht" -> "Bestellübersicht wird geladen …"
+    wait.textContent = cfg.label.replace(/^(den|die|das) /, '') + ' wird geladen …';
     document.querySelector('main').appendChild(wait);
     var frame = document.createElement('iframe');
     frame.id = 'app';
