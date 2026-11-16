@@ -11,6 +11,9 @@
 <link rel="apple-touch-icon-precomposed" sizes="180x180" href="https://hermanngreiner.github.io/harley-clannad/bestellungen/apple-touch-icon.png?v=3">
 <link rel="icon" type="image/png" href="favicon.png?v=3">
 <link rel="manifest" href="manifest.webmanifest?v=3">
+<!-- Verbindung zu Google schon aufbauen, während die Seite lädt -->
+<link rel="preconnect" href="https://script.google.com">
+<link rel="preconnect" href="https://script.googleusercontent.com">
 <link rel="stylesheet" href="../start.css">
 </head>
 <body>
@@ -29,6 +32,8 @@ var TARGET = 'https://script.google.com/macros/s/AKfycbz7MoJz96U59x_RlKhfHo88p_I
 var NAME = 'Bestellungen';
 var OPENS_IN_BROWSER = true;
 var TARGET_LABEL = 'die Bestellübersicht';
+// Übersicht im Rahmen zeigen statt weiterzuleiten (ohne den Google-Hinweis oben)
+var EMBED = true;
 </script>
 <script src="../start.js"></script>
 </body>
