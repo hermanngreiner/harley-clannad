@@ -12,8 +12,7 @@
 <link rel="icon" type="image/png" href="favicon.png?v=3">
 <link rel="manifest" href="manifest.webmanifest?v=3">
 <!-- Verbindung zu Google schon aufbauen, während die Seite lädt -->
-<link rel="preconnect" href="https://script.google.com">
-<link rel="preconnect" href="https://script.googleusercontent.com">
+<link rel="preconnect" href="https://harley-clannad-ostalb.de">
 <link rel="stylesheet" href="../start.css">
 </head>
 <body>
@@ -25,14 +24,13 @@
   <section id="howto" class="howto"></section>
 </main>
 <script>
-// Ziel: Bestellübersicht des Bekleidungsshops (Bereitstellung "Mitglieder Klamotten"), nur für den Besitzer.
-// Sie braucht die Google-Anmeldung aus Safari bzw. Chrome. Darum kein eigenes App-Fenster (das hätte eigene,
-// leere Cookies), sondern der Knopf öffnet den Browser. Ab dem zweiten Aufruf geht es ohne Zwischenseite weiter.
-var TARGET = 'https://script.google.com/macros/s/AKfycbz7MoJz96U59x_RlKhfHo88p_I66aDeHxCiPwJD6EPXwgYzAaB_HJfRCiVVTxESRpR1Wg/exec?seite=bestellungen';
+// Ziel: Bestellübersicht auf dem eigenen Server, nur mit Verwalter-Schlüssel (#schluessel=...).
+// Der Knopf öffnet den Browser. Ab dem zweiten Aufruf geht es ohne Zwischenseite weiter.
+var TARGET = 'https://harley-clannad-ostalb.de/bestellungen/';
 var NAME = 'Bestellungen';
 var OPENS_IN_BROWSER = true;
 var TARGET_LABEL = 'die Bestellübersicht';
-// Übersicht im Rahmen zeigen statt weiterzuleiten (ohne den Google-Hinweis oben)
+// Übersicht im Rahmen zeigen statt weiterzuleiten
 var EMBED = true;
 </script>
 <script src="../start.js"></script>

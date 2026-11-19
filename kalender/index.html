@@ -12,9 +12,8 @@
 <link rel="apple-touch-icon-precomposed" sizes="180x180" href="https://hermanngreiner.github.io/harley-clannad/kalender/apple-touch-icon.png?v=2">
 <link rel="icon" type="image/png" href="favicon.png?v=2">
 <link rel="manifest" href="manifest.webmanifest?v=2">
-<!-- Verbindung zu Google schon aufbauen, während die Seite lädt -->
-<link rel="preconnect" href="https://script.google.com">
-<link rel="preconnect" href="https://script.googleusercontent.com">
+<!-- Verbindung zum Server schon aufbauen, während die Seite lädt -->
+<link rel="preconnect" href="https://harley-clannad-ostalb.de">
 <link rel="stylesheet" href="../start.css">
 </head>
 <body>
@@ -26,14 +25,14 @@
   <section id="howto" class="howto"></section>
 </main>
 <script>
-// Ziel: die Google-Web-App. Der Clubcode kommt aus dem eigenen Link (#k=... oder ?k=...) und wird durchgereicht.
-var TARGET = 'https://script.google.com/macros/s/AKfycbwQZ75W2sO7QCZYtk1cp8pJWWPTO_4UkJ7LnIoLuSSA4C3dCQs0L9wV6Q6Sk7N5IKl4Jg/exec';
+// Ziel: die App auf dem eigenen Server. Der Clubcode kommt aus dem eigenen Link (#k=... oder ?k=...) und wird durchgereicht.
+var TARGET = 'https://harley-clannad-ostalb.de/kalender/';
 var NAME = 'Clubkalender';
 var TARGET_LABEL = 'den Kalender';
 // Namen einmal abfragen und dauerhaft merken (der Speicher in der Google-Seite wird am iPhone geleert)
 var NEEDS_NAME = true;
 var NAMES_PARAM = 'k';
-// Kalender im Rahmen zeigen statt weiterzuleiten (ohne den Google-Hinweis oben)
+// Kalender im Rahmen zeigen statt weiterzuleiten
 var EMBED = true;
 </script>
 <script src="../start.js"></script>
