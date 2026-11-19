@@ -1,6 +1,6 @@
 // Startseite für Kalender, Shop und Bestellungen.
 // Einstellungen je Seite (vor diesem Skript gesetzt):
-//   TARGET         Adresse der Google-Web-App (ggf. mit ?seite=...)
+//   TARGET         Adresse der Web-App (eigener Server oder Google, ggf. mit ?seite=...)
 //   NAME           Kurzname der Seite (Speicherschlüssel)
 //   TARGET_LABEL   Text "den Kalender" / "den Shop" / "die Bestellübersicht"
 //   NEEDS_NAME     true: Namen einmal abfragen, dauerhaft merken und als &name= mitgeben (gilt für alle Seiten gemeinsam)
@@ -87,7 +87,8 @@
     document.body.appendChild(frame);
     var reveal = function () { frame.className = ''; };
     window.addEventListener('message', function (e) {
-      if (/\.googleusercontent\.com$/.test(e.origin || '') && e.data && e.data.clubkalender === 'bereit') reveal();
+      var from = e.origin || '';
+      if ((from === new URL(TARGET).origin || /\.googleusercontent\.com$/.test(from)) && e.data && e.data.clubkalender === 'bereit') reveal();
     });
     setTimeout(reveal, 20000);
   }
